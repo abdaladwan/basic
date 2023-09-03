@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\LoginForm;
 use app\models\PostSearch;
 use app\models\User;
 use app\models\UserSearch;

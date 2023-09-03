@@ -27,33 +27,52 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public $username;
     public $password;
     public $authKey;
+    public $auth_key;
     public $accessToken;
+    public $password_hash;
 
 
-    private static $users = [
-        '100' => [
-            'id' => '100',
-            'username' => 'admin',
-            'password' => 'admin',
-            'authKey' => 'test100key',
-            'accessToken' => '100-token',
-        ],
-        '101' => [
-            'id' => '101',
-            'username' => 'demo',
-            'password' => 'demo',
-            'authKey' => 'test101key',
-            'accessToken' => '101-token',
-        ],
-    ];
 
 
     /**
      * {@inheritdoc}
      */
+    public static function tableName()
+    {
+        return 'User';
+    }
+/*
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            if ($this->isNewRecord) {
+                $this->auth_key = \Yii::$app->security->generateRandomString();
+            }
+            return true;
+        }
+        return false;
+    }
+*/
+
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            if ($this->isNewRecord || $this->isAttributeChanged('Password')) {
+                // Hash the password only if it's a new record or if the password has changed
+                $security = Yii::$app->security;
+                $this->Password = $security->generatePasswordHash($this->Password);
+            }
+            return true;
+        }
+        return false;
+    }
+
+
+
+
     public static function findIdentity($id)
     {
-        return isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
+        return static::findOne($id);
     }
 
     /**
@@ -61,13 +80,8 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        foreach (self::$users as $user) {
-            if ($user['accessToken'] === $token) {
-                return new static($user);
-            }
-        }
+        return static::findOne(['access_token' => $token]);
 
-        return null;
     }
 
     /**
@@ -78,13 +92,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public static function findByUsername($username)
     {
-        foreach (self::$users as $user) {
-            if (strcasecmp($user['username'], $username) === 0) {
-                return new static($user);
-            }
-        }
-
-        return null;
+        return static::findOne(['Username' => $username]);
     }
     public static function find()
     {
@@ -103,9 +111,15 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     /**
      * {@inheritdoc}
      */
+
     public function getAuthKey()
     {
-        return $this->authKey;
+        return $this->auth_key;
+    }
+
+    public function setAuthKey($authKey)
+    {
+        $this->auth_key = $authKey;
     }
 
     /**
@@ -122,14 +136,14 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      * @param string $password password to validate
      * @return bool if password provided is valid for current user
      */
+
+
     public function validatePassword($password)
     {
-        return $this->password === $password;
+        return Yii::$app->security->validatePassword($password, $this->Password);
     }
-    public static function tableName()
-    {
-        return 'User';
-    }
+
+
 
     /**
      * {@inheritdoc}
@@ -140,6 +154,8 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             [['Username', 'Email', 'Password'], 'required'],
             [['Username', 'Email', 'Password'], 'string', 'max' => 255],
             ['is_deleted', 'boolean'],
+            ['password_hash', 'safe'],
+
 
         ];
     }
@@ -195,3 +211,9 @@ class User extends \yii\base\BaseObject
 {
 
 }*/
+
+
+
+
+
+

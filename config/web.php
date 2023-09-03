@@ -14,7 +14,10 @@ $config = [
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            'cookieValidationKey' => 'SAMg17tQuX_S6NB3pfzgvk5hqGLHdU6q',
+            'cookieValidationKey' => 'your-secret-key-here',
+        ],
+        'security' => [
+            'class' => 'yii\base\Security',
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -27,9 +30,9 @@ $config = [
             'errorAction' => 'site/error',
         ],
         'mailer' => [
-            'class' => \yii\symfonymailer\Mailer::class,
+            'class' => 'yii\swiftmailer\Mailer', // Use Yii2's Swiftmailer
             'viewPath' => '@app/mail',
-            // send all mails to a file by default.
+            // send all mails to a file by default (for testing)
             'useFileTransport' => true,
         ],
         'log' => [
